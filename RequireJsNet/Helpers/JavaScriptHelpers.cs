@@ -14,10 +14,10 @@ namespace RequireJsNet.Helpers
 
     internal static class JavaScriptHelpers
     {
-        public static string SerializeAsVariable<T>(T obj, string varName)
+        public static string SerializeAsVariable(object obj, string varName)
         {
             var json = JsonConvert.SerializeObject(obj);
-            return string.Format("var {0} = {1};", varName, json);
+            return $"{varName} = {json};";
         }
 
         public static string MethodCall(string methodName, params object[] arguments)
