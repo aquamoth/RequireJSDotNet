@@ -27,7 +27,7 @@ namespace RequireJsNet
 
         public RequireRendererConfiguration()
         {
-            LocaleSelector = helper => System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Split('-')[0];
+            LocaleSelector = httpContext => System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Split('-')[0];
             ProcessConfig = config => { };
             ProcessOptions = options => { };
         }
@@ -152,7 +152,7 @@ namespace RequireJsNet
         /// <summary>
         /// Gets or sets a function that returns the current locale in short format (ex. "en")
         /// </summary>
-        public Func<HtmlHelper, string> LocaleSelector { get; set; }
+        public Func<System.Web.HttpContextBase, string> LocaleSelector { get; set; }
 
         public Action<JsonRequireOutput> ProcessConfig { get; set; }
 

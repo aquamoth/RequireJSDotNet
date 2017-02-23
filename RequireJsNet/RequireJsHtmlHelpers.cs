@@ -38,12 +38,12 @@ namespace RequireJsNet
             if (config.ConfigurationFiles == null || !config.ConfigurationFiles.Any())
                 throw new Exception("No config files to load.");
 
-            return RenderRequireJsSetup_Inline(html, config, entryPointPath);
+            return RenderRequireJsSetup_Inline(html.ViewContext.HttpContext, config, entryPointPath);
         }
 
-        private static MvcHtmlString RenderRequireJsSetup_Inline(HtmlHelper html, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
+        private static MvcHtmlString RenderRequireJsSetup_Inline(System.Web.HttpContextBase httpContext, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
         {
-            string configScript = buildConfigScript(html, config, entryPointPath).Render();
+            string configScript = buildConfigScript(httpContext, config, entryPointPath).Render();
             string requireJsScript = buildRequireJsScript(config);
             string requireEntrypointScript = buildRequireEntrypointScript(entryPointPath);
 
@@ -54,10 +54,8 @@ namespace RequireJsNet
             ));
         }
 
-        internal static JavaScriptBuilder buildConfigScript(HtmlHelper html, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
+        internal static JavaScriptBuilder buildConfigScript(System.Web.HttpContextBase httpContext, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
         {
-            var httpContext = html.ViewContext.HttpContext;
-
             var processedConfigs = config.ConfigurationFiles.Select(r =>
             {
                 var resultingPath = httpContext.MapPath(r);
@@ -67,7 +65,7 @@ namespace RequireJsNet
 
             var resultingConfig = GetCachedOverridenConfig(processedConfigs, config, entryPointPath.ToString());
 
-            var locale = config.LocaleSelector(html);
+            var locale = config.LocaleSelector(httpContext);
 
             var outputConfig = createOutputConfigFrom(resultingConfig, config, locale);
 
