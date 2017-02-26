@@ -65,5 +65,18 @@ namespace RequireJsNet.Tests
             Assert.NotNull(httpHandler);
         }
 
+        [Fact]
+        public void registerDefaultRoute()
+        {
+            var expectedUrl = $"{HttpModule.RequireJsRouteHandler.DEFAULT_ROUTE_PREFIX}/{{{HttpModule.RequireJsRouteHandler.URL_CONFIGNAME_NAME}}}/{{*{HttpModule.RequireJsRouteHandler.URL_ENTRYPOINT_NAME}}}";
+
+            var routes = new RouteCollection();
+            var expectedHandler = HttpModule.RequireJsRouteHandler.RegisterRoutes(routes);
+
+            Assert.Equal(1, routes.Count);
+            var actualRoute = routes[0] as Route;
+            Assert.Equal(expectedUrl, actualRoute.Url);
+            Assert.Equal(expectedHandler, actualRoute.RouteHandler);
+        }
     }
 }

@@ -65,17 +65,17 @@ namespace RequireJsNet.HttpModule
 
         #region Register Routes
 
-        //public static RequireJsRouteHandler RegisterRoutes(RouteCollection routes, string prefix = DEFAULT_ROUTE_PREFIX)
-        //{
-        //    var routeHandler = new RequireJsRouteHandler(prefix);
-        //    routes.Add(new Route(routeHandler.RoutePrefix + URL, routeHandler));
-        //    return routeHandler;
-        //}
+        public static RequireJsRouteHandler RegisterRoutes(RouteCollection routes, string prefix = DEFAULT_ROUTE_PREFIX)
+        {
+            var routeHandler = new RequireJsRouteHandler(prefix);
+            routes.Add(new Route(routeHandler.RoutePrefix + URL, routeHandler));
+            return routeHandler;
+        }
 
         internal const string URL_CONFIGNAME_NAME = "configName";
         internal const string URL_ENTRYPOINT_NAME = "entrypoint";
-        //const string URL = "/{" + URL_CONFIGNAME_NAME + "}/{*" + URL_ENTRYPOINT_NAME + "}";
-        //const string DEFAULT_ROUTE_PREFIX = "requirejsdotnet";
+        const string URL = "/{" + URL_CONFIGNAME_NAME + "}/{*" + URL_ENTRYPOINT_NAME + "}";
+        public const string DEFAULT_ROUTE_PREFIX = "requirejsdotnet";
 
         #endregion Register Routes
     }
