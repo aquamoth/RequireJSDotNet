@@ -39,7 +39,7 @@ namespace RequireJsNet.Tests
         //}
 
         [Fact]
-        public void returnConfigScriptFor()
+        public void returnConfigScriptForValidRequest()
         {
             using (new FakeHttpContext.FakeHttpContext())
             {
@@ -47,18 +47,11 @@ namespace RequireJsNet.Tests
 requireConfig = {""locale"":""sv"",""pageOptions"":{},""websiteOptions"":{}};
 require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSeconds"":7,""paths"":{},""packages"":[],""shim"":{},""map"":{}};
 </script>";
-
-                var routeHandler = new RequireJsRouteHandler("unimportant-prefix");
-                routeHandler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME).ConfigurationFiles[0] = "..\\..\\TestData\\RequireJsHttpHandlerBuilderShould\\init.json";
-
-
+                var configurations = testConfigurations();
                 var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
-                var httpContext = System.Web.HttpContext.Current;
-                var httpContextWrapper = new System.Web.HttpContextWrapper(httpContext);
-                var requestContext = new RequestContext(httpContextWrapper, routeData);
+                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
 
-                var builder = new RequireJsHttpHandlerBuilder(routeHandler.Configurations, requestContext);
-                var success = builder.ProcessRequest(httpContext);
+                var success = builder.ProcessRequest(System.Web.HttpContext.Current);
 
                 Assert.True(success);
                 Assert.Equal("text/javascript", builder.ContentType);
@@ -66,6 +59,14 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
                 Assert.Equal((int)System.Net.HttpStatusCode.OK, builder.StatusCode);
                 Assert.Equal(expectedContent, builder.Content);
             }
+        }
+
+        private static IReadOnlyDictionary<string, RequireRendererConfiguration> testConfigurations()
+        {
+            var routeHandler = new RequireJsRouteHandler("unimportant-prefix");
+            routeHandler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME).ConfigurationFiles[0] = "..\\..\\TestData\\RequireJsHttpHandlerBuilderShould\\init.json";
+            var configurations = routeHandler.Configurations;
+            return configurations;
         }
 
         private static RouteData buildRoute(string configName, string entryPoint)

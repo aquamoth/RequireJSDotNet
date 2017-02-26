@@ -59,7 +59,7 @@ namespace RequireJsNet.HttpModule
 
         IHttpHandler IRouteHandler.GetHttpHandler(RequestContext requestContext)
         {
-            var builder = new RequireJsHttpHandlerBuilder(_configurations, requestContext);
+            var builder = new RequireJsHttpHandlerBuilder(_configurations, requestContext.RouteData);
             return new GenericHttpHandler(builder);
         }
     }

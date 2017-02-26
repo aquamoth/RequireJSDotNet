@@ -13,7 +13,7 @@ namespace RequireJsNet.HttpModule
     public class RequireJsHttpHandlerBuilder : IHttpHandlerBuilder
     {
         readonly internal IReadOnlyDictionary<string, RequireRendererConfiguration> configurations;
-        readonly RequestContext requestContext;
+        readonly RouteData routeData;
 
         public bool IsReusable { get { return true; } }
         public string Content { get; private set; }
@@ -23,10 +23,10 @@ namespace RequireJsNet.HttpModule
         public IReadOnlyDictionary<string, string> Headers { get { return _headers; } }
         private Dictionary<string, string> _headers = new Dictionary<string, string>();
 
-        internal RequireJsHttpHandlerBuilder(IReadOnlyDictionary<string, RequireRendererConfiguration> configurations, RequestContext requestContext)
+        internal RequireJsHttpHandlerBuilder(IReadOnlyDictionary<string, RequireRendererConfiguration> configurations, RouteData routeData)
         {
             this.configurations = configurations;
-            this.requestContext = requestContext;
+            this.routeData = routeData;
         }
 
         public bool ProcessRequest(HttpContext context)
@@ -34,16 +34,16 @@ namespace RequireJsNet.HttpModule
             //if (IsMethodNotAllowed(context))
             //    return true;
 
-            var configName = requestContext.RouteData.GetRequiredString("configName");
+            var configName = this.routeData.GetRequiredString("configName");
             var config = this.configurations[configName];
 
             //if (!IsNotModified(context, config))
             //    return true;
 
-            var entrypoint = requestContext.RouteData.GetRequiredString("entrypoint");
+            var entrypoint = this.routeData.GetRequiredString("entrypoint");
             var entrypointPath = System.Web.Mvc.MvcHtmlString.Create(entrypoint);
             var httpContext = new HttpContextWrapper(context);
-
+            
             this.Content = RequireJsHtmlHelpers.buildConfigScript(httpContext, config, entrypointPath).Render();
             this.ContentType = "text/javascript";
             this.ContentEncoding = Encoding.UTF8;
