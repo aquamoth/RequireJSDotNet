@@ -17,6 +17,33 @@ namespace RequireJsNet
 {
     public static class RequireJsHtmlHelpers
     {
+        public static MvcHtmlString RenderRequireJsSetup(this HtmlHelper html, string configurationName = "", bool inlineConfigInHtml = true)
+        {
+            var handler = html.RouteCollection
+                .OfType<System.Web.Routing.Route>()
+                .Select(r => r.RouteHandler)
+                .OfType<HttpModule.RequireJsRouteHandler>()
+                .SingleOrDefault(); //TODO: Accept multiple registrations and use the one with the registered configuration?!
+
+            if (handler == null)
+                throw new ApplicationException("RequireJSRoutingHandler must be registered in Global.aspx before RenderRequreJsSetup() can be called with names.");
+
+
+            var config = handler.Get(configurationName);
+
+            var entryPointPath = html.RequireJsEntryPoint(config.BaseUrl, config.EntryPointRoot);
+            if (entryPointPath == null)
+                return new MvcHtmlString(string.Empty);
+
+            if (inlineConfigInHtml)
+                return RenderRequireJsSetup_Inline(html.ViewContext.HttpContext, config, entryPointPath);
+            else
+            {
+                var urlRoot = System.Web.VirtualPathUtility.ToAbsolute($"~/{handler.RoutePrefix}");
+                return new MvcHtmlString($"<script src=\"{urlRoot}/{configurationName}/{entryPointPath}/\"></script>");
+            }
+        }
+
         /// <summary>
         /// Setup RequireJS to be used in layouts
         /// </summary>
