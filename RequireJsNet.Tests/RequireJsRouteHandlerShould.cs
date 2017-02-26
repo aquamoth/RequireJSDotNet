@@ -13,8 +13,8 @@ namespace RequireJsNet.Tests
         [Fact]
         public void requiresPrefixToInitialize()
         {
-            Assert.Throws<ArgumentException>(() => new RequireJsRouteHandler(null));
-            Assert.Throws<ArgumentException>(() => new RequireJsRouteHandler(""));
+            Assert.Throws<ArgumentException>(() => new HttpModule.RequireJsRouteHandler(null));
+            Assert.Throws<ArgumentException>(() => new HttpModule.RequireJsRouteHandler(""));
         }
 
         [Fact]
@@ -22,7 +22,7 @@ namespace RequireJsNet.Tests
         {
             var expected = "testPrefix";
 
-            var handler = new RequireJsRouteHandler(expected);
+            var handler = new HttpModule.RequireJsRouteHandler(expected);
 
             Assert.IsAssignableFrom<IRouteHandler>(handler);
             Assert.Equal(expected, handler.RoutePrefix);
@@ -31,8 +31,8 @@ namespace RequireJsNet.Tests
         [Fact]
         public void containDefaultConfig()
         {
-            var handler = new RequireJsRouteHandler("unimportant-prefix");
-            var config = handler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME);
+            var handler = new HttpModule.RequireJsRouteHandler("unimportant-prefix");
+            var config = handler.Get(HttpModule.RequireJsRouteHandler.DEFAULT_CONFIG_NAME);
 
             Assert.Equal("/Scripts/require.js", config.RequireJsUrl);
             Assert.Equal("/Scripts/", config.BaseUrl);
@@ -44,7 +44,7 @@ namespace RequireJsNet.Tests
         {
             var expectedName = "myconfig";
             var expectedConfig = new RequireRendererConfiguration();
-            var handler = new RequireJsRouteHandler("unimportant-prefix");
+            var handler = new HttpModule.RequireJsRouteHandler("unimportant-prefix");
 
             Assert.Throws<ArgumentNullException>(() => handler.RegisterConfig(null, expectedConfig));
             Assert.Throws<ArgumentNullException>(() => handler.RegisterConfig(expectedName, null));
@@ -58,7 +58,7 @@ namespace RequireJsNet.Tests
         [Fact]
         public void provideHttpHandlerForRequest()
         {
-            IRouteHandler handler = new RequireJsRouteHandler("unimportant-prefix");
+            IRouteHandler handler = new HttpModule.RequireJsRouteHandler("unimportant-prefix");
 
             var httpHandler = handler.GetHttpHandler(new RequestContext());
 

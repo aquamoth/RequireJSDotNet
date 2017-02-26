@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Routing;
 
-namespace RequireJsNet
+namespace RequireJsNet.HttpModule
 {
     public class RequireJsRouteHandler : IRouteHandler
     {
         public const string DEFAULT_CONFIG_NAME = "default";
 
+        internal IReadOnlyDictionary<string, RequireRendererConfiguration> Configurations { get { return _configurations; } }
         readonly Dictionary<string, RequireRendererConfiguration> _configurations;
 
         public string RoutePrefix { get; private set; }
@@ -58,7 +59,8 @@ namespace RequireJsNet
 
         IHttpHandler IRouteHandler.GetHttpHandler(RequestContext requestContext)
         {
-            return new RequireJsHttpHandler(requestContext, _configurations);
+            var builder = new RequireJsHttpHandlerBuilder(_configurations, requestContext);
+            return new GenericHttpHandler(builder);
         }
     }
 }
