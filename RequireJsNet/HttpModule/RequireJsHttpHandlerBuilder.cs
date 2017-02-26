@@ -34,13 +34,13 @@ namespace RequireJsNet.HttpModule
             if (IsMethodNotAllowed(context))
                 return true;
 
-            var configName = this.routeData.GetRequiredString("configName");
+            var configName = this.routeData.GetRequiredString(RequireJsRouteHandler.URL_CONFIGNAME_NAME);
             var config = this.configurations[configName];
 
             if (IsNotModified(context, config))
                 return true;
 
-            var entrypoint = this.routeData.GetRequiredString("entrypoint");
+            var entrypoint = this.routeData.GetRequiredString(RequireJsRouteHandler.URL_ENTRYPOINT_NAME);
             var entrypointPath = System.Web.Mvc.MvcHtmlString.Create(entrypoint);
             var httpContext = new HttpContextWrapper(context);
             
@@ -91,21 +91,5 @@ namespace RequireJsNet.HttpModule
             this.StatusCode = (int)HttpStatusCode.NotModified;
             return true;
         }
-
-        #region Register Routes
-
-        //public static RequireJsRouteHandler RegisterRoutes(RouteCollection routes, string prefix = DEFAULT_ROUTE_PREFIX)
-        //{
-        //    var routeHandler = new RequireJsRouteHandler(prefix);
-
-        //    var route = routeHandler.RoutePrefix + "/{configName}/{*entrypoint}";
-        //    routes.Add(new Route(route, routeHandler));
-
-        //    return routeHandler;
-        //}
-
-        //const string DEFAULT_ROUTE_PREFIX = "requirejsdotnet";
-
-        #endregion Register Routes
     }
 }
