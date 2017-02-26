@@ -31,14 +31,14 @@ namespace RequireJsNet.HttpModule
 
         public bool ProcessRequest(HttpContext context)
         {
-            //if (IsMethodNotAllowed(context))
-            //    return true;
+            if (IsMethodNotAllowed(context))
+                return true;
 
             var configName = this.routeData.GetRequiredString("configName");
             var config = this.configurations[configName];
 
-            //if (!IsNotModified(context, config))
-            //    return true;
+            if (IsNotModified(context, config))
+                return true;
 
             var entrypoint = this.routeData.GetRequiredString("entrypoint");
             var entrypointPath = System.Web.Mvc.MvcHtmlString.Create(entrypoint);
@@ -48,44 +48,49 @@ namespace RequireJsNet.HttpModule
             this.ContentType = "text/javascript";
             this.ContentEncoding = Encoding.UTF8;
             this.StatusCode = (int)HttpStatusCode.OK;
-            this._headers.Add("Last-Modified", config.LastModified.ToUniversalTime().ToString("R"));
+            this._headers.Add("Last-Modified", GmtString(config.LastModified));
             this._headers.Add("ETag", config.Hashcode);
 
             return true;
         }
 
-        //private bool IsMethodNotAllowed(HttpContext context)
-        //{
-        //    if (new[] { "HEAD", "GET" }.Contains(context.Request.RequestType))
-        //        return false;
+        internal static string GmtString(DateTime dateTime)
+        {
+            return dateTime.ToUniversalTime().ToString("R");
+        }
 
-        //    this.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-        //    return true;
-        //}
+        private bool IsMethodNotAllowed(HttpContext context)
+        {
+            if (new[] { "HEAD", "GET" }.Contains(context.Request.RequestType))
+                return false;
 
-        //private bool IsNotModified(HttpContext context, RequireRendererConfiguration config)
-        //{
-        //    //var ifNoneMatch = context.Request.Headers["If-None-Match"];
-        //    //if (ifNoneMatch != null)
-        //    //{
-        //    //    if (ifNoneMatch != config.Hashcode)
-        //    //        return false;
-        //    //}
-        //    //else
-        //    //{
-        //    //    DateTime ifModifiedSince;
-        //    //    if (!DateTime.TryParse(context.Request.Headers["If-Modified-Since"], out ifModifiedSince))
-        //    //        return false;
+            this.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+            return true;
+        }
 
-        //    //    if (config.LastModified > ifModifiedSince)
-        //    //        return false;
+        private bool IsNotModified(HttpContext context, RequireRendererConfiguration config)
+        {
+            var ifNoneMatch = context.Request.Headers["If-None-Match"];
+            if (ifNoneMatch != null)
+            {
+                if (ifNoneMatch != config.Hashcode)
+                    return false;
+            }
+            else
+            {
+                DateTime ifModifiedSince;
+                if (!DateTime.TryParse(context.Request.Headers["If-Modified-Since"], out ifModifiedSince))
+                    return false;
 
-        //    //    addLastModifiedHeaderTo(context, config.LastModified);
-        //    //}
+                if (config.LastModified > ifModifiedSince)
+                    return false;
 
-        //    //this.StatusCode = (int)HttpStatusCode.NotModified;
-        //    return true;
-        //}
+                //this._headers.Add("Last-Modified", GmtString(config.LastModified));
+            }
+
+            this.StatusCode = (int)HttpStatusCode.NotModified;
+            return true;
+        }
 
         #region Register Routes
 

@@ -11,32 +11,31 @@ namespace RequireJsNet.Tests
 {
     public class RequireJsHttpHandlerBuilderShould
     {
-        //[Fact]
-        //public void onlyProcessGETandHEADrequests()
-        //{
-        //    var httpApplication = new MyHttpApplication();
-        //    using (new FakeHttpContext.FakeHttpContext())
-        //    {
-        //        var routeHandler = new RequireJsRouteHandler("unimportant-prefix");
-        //        //routeHandler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME).ConfigurationFiles[0] = "..\\..\\TestData\\RequireJsHttpHandlerBuilderShould\\init.json";
+        [Fact]
+        public void FormatsDatesToGmt()
+        {
+            var dt = new DateTime(2011, 10, 18, 22, 17, 53, DateTimeKind.Local);
+            var actual = RequireJsHttpHandlerBuilder.GmtString(dt);
+            Assert.Equal("Tue, 18 Oct 2011 15:17:53 GMT", actual);
+        }
 
+        [Fact]
+        public void onlyProcessGETandHEADrequests()
+        {
+            using (new FakeHttpContext.FakeHttpContext())
+            {
+                System.Web.HttpContext.Current.Request.RequestType = "POST";
 
-        //        var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
-        //        var httpContext = System.Web.HttpContext.Current;
-        //        var httpContextWrapper = new System.Web.HttpContextWrapper(httpContext);
-        //        var requestContext = new RequestContext(httpContextWrapper, routeData);
-        //        var httpHandler = ((IRouteHandler)routeHandler).GetHttpHandler(requestContext);
+                var configurations = testConfigurations();
+                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
+                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
 
-        //        httpContext.ApplicationInstance = httpApplication;
-        //        httpHandler.ProcessRequest(httpContext);
+                var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
 
-        //        Assert.False(httpApplication.CompleteRequestCalled);
-
-
-
-        //        Assert.Equal((int)System.Net.HttpStatusCode.OK, httpContext.Response.StatusCode);
-        //    }
-        //}
+                Assert.True(processed);
+                Assert.Equal((int)System.Net.HttpStatusCode.MethodNotAllowed, builder.StatusCode);
+            }
+        }
 
         [Fact]
         public void returnConfigScriptForValidRequest()
@@ -46,7 +45,7 @@ namespace RequireJsNet.Tests
                 var configurations = testConfigurations();
 
                 var expectedHeaders = new Dictionary<string, string>() {
-                    { "Last-Modified", configurations.Single().Value.LastModified.ToUniversalTime().ToString("R") },
+                    { "Last-Modified", RequireJsHttpHandlerBuilder.GmtString(configurations.Single().Value.LastModified) },
                     { "ETag", configurations.Single().Value.LastModified.Ticks.ToString() }
                 };
 
@@ -57,14 +56,103 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
                 var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
                 var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
 
-                var success = builder.ProcessRequest(System.Web.HttpContext.Current);
+                var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
 
-                Assert.True(success);
+                Assert.True(processed);
+                Assert.Equal((int)System.Net.HttpStatusCode.OK, builder.StatusCode);
                 Assert.Equal("text/javascript", builder.ContentType);
                 Assert.Equal(Encoding.UTF8, builder.ContentEncoding);
-                Assert.Equal((int)System.Net.HttpStatusCode.OK, builder.StatusCode);
                 Assert.Equal(expectedHeaders, builder.Headers);
                 Assert.Equal(expectedContent, builder.Content);
+            }
+        }
+
+        [Fact]
+        public void returnIfModifiedSince()
+        {
+            using (var fake = new FakeHttpContext.FakeHttpContext())
+            {
+                var configurations = testConfigurations();
+
+                var lastModified = configurations.Single().Value.LastModified;
+                fake.Request.Add("If-Modified-Since", RequireJsHttpHandlerBuilder.GmtString(lastModified.AddSeconds(-1)));
+
+
+                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
+                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
+
+                var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
+
+                Assert.True(processed);
+                Assert.Equal((int)System.Net.HttpStatusCode.OK, builder.StatusCode);
+            }
+        }
+
+        [Fact]
+        public void returnNotModifiedByTimestamp()
+        {
+            using (var fake = new FakeHttpContext.FakeHttpContext())
+            {
+                var configurations = testConfigurations();
+
+                var lastModified = configurations.Single().Value.LastModified;
+                fake.Request.Add("If-Modified-Since", RequireJsHttpHandlerBuilder.GmtString(lastModified));
+
+
+                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
+                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
+
+                var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
+
+                Assert.True(processed);
+                Assert.Equal((int)System.Net.HttpStatusCode.NotModified, builder.StatusCode);
+                //Assert.Equal(RequireJsHttpHandlerBuilder.GmtString(lastModified), builder.Headers["Last-Modified"]);
+                Assert.Null(builder.Content);
+            }
+        }
+
+        [Fact]
+        public void returnIfNoneMatch()
+        {
+            using (var fake = new FakeHttpContext.FakeHttpContext())
+            {
+                var configurations = testConfigurations();
+
+                var lastModified = configurations.Single().Value.LastModified;
+                fake.Request.Add("If-Modified-Since", RequireJsHttpHandlerBuilder.GmtString(lastModified));
+                fake.Request.Add("If-None-Match", "UNMATCHED-ETAG");
+
+
+                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
+                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
+
+                var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
+
+                Assert.True(processed);
+                Assert.Equal((int)System.Net.HttpStatusCode.OK, builder.StatusCode);
+            }
+        }
+
+        [Fact]
+        public void returnNotModifiedByETag()
+        {
+            using (var fake = new FakeHttpContext.FakeHttpContext())
+            {
+                var configurations = testConfigurations();
+
+                var lastModified = configurations.Single().Value.LastModified;
+                fake.Request.Add("If-Modified-Since", RequireJsHttpHandlerBuilder.GmtString(lastModified));
+                fake.Request.Add("If-None-Match", configurations.Single().Value.Hashcode);
+
+
+                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
+                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
+
+                var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
+
+                Assert.True(processed);
+                Assert.Equal((int)System.Net.HttpStatusCode.NotModified, builder.StatusCode);
+                Assert.Null(builder.Content);
             }
         }
 
