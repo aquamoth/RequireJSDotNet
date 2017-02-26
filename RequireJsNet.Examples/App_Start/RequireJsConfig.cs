@@ -7,7 +7,7 @@ namespace RequireJsNet.Examples
     {
         public static void RegisterRoutes(RouteCollection routes)
         {
-            var routeHandler = RequireJsHttpHandler.RegisterRoutes(routes);
+            var routeHandler = HttpModule.RequireJsRouteHandler.RegisterRoutes(routes);
 
             routeHandler.RegisterConfig("complex", complexConfig());
         }

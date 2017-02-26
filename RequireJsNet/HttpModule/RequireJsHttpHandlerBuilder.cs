@@ -44,7 +44,7 @@ namespace RequireJsNet.HttpModule
             var entrypointPath = System.Web.Mvc.MvcHtmlString.Create(entrypoint);
             var httpContext = new HttpContextWrapper(context);
             
-            this.Content = RequireJsHtmlHelpers.buildConfigScript(httpContext, config, entrypointPath).Render();
+            this.Content = RequireJsHtmlHelpers.buildConfigScript(httpContext, config, entrypointPath).RenderContent();
             this.ContentType = "text/javascript";
             this.ContentEncoding = Encoding.UTF8;
             this.StatusCode = (int)HttpStatusCode.OK;

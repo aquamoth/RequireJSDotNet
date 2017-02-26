@@ -17,7 +17,7 @@ namespace RequireJsNet
 {
     public static class RequireJsHtmlHelpers
     {
-        public static MvcHtmlString RenderRequireJsSetup(this HtmlHelper html, string configurationName = "", bool inlineConfigInHtml = true)
+        public static MvcHtmlString RenderRequireJsSetup(this HtmlHelper html, string configurationName = HttpModule.RequireJsRouteHandler.DEFAULT_CONFIG_NAME, bool inlineConfigInHtml = true)
         {
             var handler = html.RouteCollection
                 .OfType<System.Web.Routing.Route>()
@@ -39,8 +39,7 @@ namespace RequireJsNet
                 return RenderRequireJsSetup_Inline(html.ViewContext.HttpContext, config, entryPointPath);
             else
             {
-                var urlRoot = System.Web.VirtualPathUtility.ToAbsolute($"~/{handler.RoutePrefix}");
-                return new MvcHtmlString($"<script src=\"{urlRoot}/{configurationName}/{entryPointPath}/\"></script>");
+                return RenderRequireJsSetup_Offline(handler, configurationName, config, entryPointPath);
             }
         }
 
@@ -71,14 +70,32 @@ namespace RequireJsNet
         private static MvcHtmlString RenderRequireJsSetup_Inline(System.Web.HttpContextBase httpContext, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
         {
             string configScript = buildConfigScript(httpContext, config, entryPointPath).Render();
-            string requireJsScript = buildRequireJsScript(config);
-            string requireEntrypointScript = buildRequireEntrypointScript(entryPointPath);
 
             return new MvcHtmlString(string.Concat(
                 configScript + Environment.NewLine,
-                requireJsScript + Environment.NewLine,
-                requireEntrypointScript
+                bootstrappingScripts(config, entryPointPath)
             ));
+        }
+
+        private static MvcHtmlString RenderRequireJsSetup_Offline(HttpModule.RequireJsRouteHandler handler, string configName, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
+        {
+            var prefix = System.Web.VirtualPathUtility.ToAbsolute($"~/{handler.RoutePrefix}");
+            var configScript = $"<script src=\"{prefix}/{configName}/{entryPointPath}/\"></script>";
+
+            return new MvcHtmlString(string.Concat(
+                configScript + Environment.NewLine,
+                bootstrappingScripts(config, entryPointPath)
+            ));
+        }
+
+        private static string bootstrappingScripts(RequireRendererConfiguration config, MvcHtmlString entryPointPath)
+        {
+            string requireJsScript = buildRequireJsScript(config.RequireJsUrl);
+            string requireEntrypointScript = buildRequireEntrypointScript(entryPointPath);
+
+            return string.Concat(
+                requireJsScript + Environment.NewLine,
+                requireEntrypointScript);
         }
 
         internal static JavaScriptBuilder buildConfigScript(System.Web.HttpContextBase httpContext, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
@@ -105,10 +122,10 @@ namespace RequireJsNet
             return configBuilder;
         }
 
-        private static string buildRequireJsScript(RequireRendererConfiguration config)
+        private static string buildRequireJsScript(string requireJsUrl)
         {
             var requireRootBuilder = new JavaScriptBuilder();
-            requireRootBuilder.AddAttributesToStatement("src", config.RequireJsUrl);
+            requireRootBuilder.AddAttributesToStatement("src", requireJsUrl);
             return requireRootBuilder.Render();
         }
 

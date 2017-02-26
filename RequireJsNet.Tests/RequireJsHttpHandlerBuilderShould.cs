@@ -48,10 +48,10 @@ namespace RequireJsNet.Tests
                     { "ETag", lastModified.Ticks.ToString() }
                 };
 
-                var expectedContent = @"<script>
+                var expectedContent = @"
 requireConfig = {""locale"":""sv"",""pageOptions"":{},""websiteOptions"":{}};
 require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSeconds"":7,""paths"":{},""packages"":[],""shim"":{},""map"":{}};
-</script>";
+";
 
                 var builder = createBuilder(configurations);
                 var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
