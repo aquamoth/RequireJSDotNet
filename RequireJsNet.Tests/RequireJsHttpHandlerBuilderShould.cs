@@ -22,14 +22,13 @@ namespace RequireJsNet.Tests
         [Fact]
         public void onlyProcessGETandHEADrequests()
         {
+            var configurations = testConfigurations();
+            //var lastModified = configurations.Single().Value.LastModified;
             using (new FakeHttpContext.FakeHttpContext())
             {
                 System.Web.HttpContext.Current.Request.RequestType = "POST";
 
-                var configurations = testConfigurations();
-                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
-                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
-
+                var builder = createBuilder(configurations);
                 var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
 
                 Assert.True(processed);
@@ -40,22 +39,21 @@ namespace RequireJsNet.Tests
         [Fact]
         public void returnConfigScriptForValidRequest()
         {
+            var configurations = testConfigurations();
+            var lastModified = configurations.Single().Value.LastModified;
             using (new FakeHttpContext.FakeHttpContext())
             {
-                var configurations = testConfigurations();
-
                 var expectedHeaders = new Dictionary<string, string>() {
-                    { "Last-Modified", RequireJsHttpHandlerBuilder.GmtString(configurations.Single().Value.LastModified) },
-                    { "ETag", configurations.Single().Value.LastModified.Ticks.ToString() }
+                    { "Last-Modified", RequireJsHttpHandlerBuilder.GmtString(lastModified) },
+                    { "ETag", lastModified.Ticks.ToString() }
                 };
 
                 var expectedContent = @"<script>
 requireConfig = {""locale"":""sv"",""pageOptions"":{},""websiteOptions"":{}};
 require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSeconds"":7,""paths"":{},""packages"":[],""shim"":{},""map"":{}};
 </script>";
-                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
-                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
 
+                var builder = createBuilder(configurations);
                 var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
 
                 Assert.True(processed);
@@ -70,17 +68,13 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
         [Fact]
         public void returnIfModifiedSince()
         {
+            var configurations = testConfigurations();
+            var lastModified = configurations.Single().Value.LastModified;
             using (var fake = new FakeHttpContext.FakeHttpContext())
             {
-                var configurations = testConfigurations();
-
-                var lastModified = configurations.Single().Value.LastModified;
                 fake.Request.Add("If-Modified-Since", RequireJsHttpHandlerBuilder.GmtString(lastModified.AddSeconds(-1)));
 
-
-                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
-                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
-
+                var builder = createBuilder(configurations);
                 var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
 
                 Assert.True(processed);
@@ -91,17 +85,13 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
         [Fact]
         public void returnNotModifiedByTimestamp()
         {
+            var configurations = testConfigurations();
+            var lastModified = configurations.Single().Value.LastModified;
             using (var fake = new FakeHttpContext.FakeHttpContext())
             {
-                var configurations = testConfigurations();
-
-                var lastModified = configurations.Single().Value.LastModified;
                 fake.Request.Add("If-Modified-Since", RequireJsHttpHandlerBuilder.GmtString(lastModified));
 
-
-                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
-                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
-
+                var builder = createBuilder(configurations);
                 var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
 
                 Assert.True(processed);
@@ -114,18 +104,14 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
         [Fact]
         public void returnIfNoneMatch()
         {
+            var configurations = testConfigurations();
+            var lastModified = configurations.Single().Value.LastModified;
             using (var fake = new FakeHttpContext.FakeHttpContext())
             {
-                var configurations = testConfigurations();
-
-                var lastModified = configurations.Single().Value.LastModified;
                 fake.Request.Add("If-Modified-Since", RequireJsHttpHandlerBuilder.GmtString(lastModified));
                 fake.Request.Add("If-None-Match", "UNMATCHED-ETAG");
 
-
-                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
-                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
-
+                var builder = createBuilder(configurations);
                 var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
 
                 Assert.True(processed);
@@ -136,18 +122,14 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
         [Fact]
         public void returnNotModifiedByETag()
         {
+            var configurations = testConfigurations();
+            var lastModified = configurations.Single().Value.LastModified;
             using (var fake = new FakeHttpContext.FakeHttpContext())
             {
-                var configurations = testConfigurations();
-
-                var lastModified = configurations.Single().Value.LastModified;
                 fake.Request.Add("If-Modified-Since", RequireJsHttpHandlerBuilder.GmtString(lastModified));
                 fake.Request.Add("If-None-Match", configurations.Single().Value.Hashcode);
 
-
-                var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
-                var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
-
+                var builder = createBuilder(configurations);
                 var processed = builder.ProcessRequest(System.Web.HttpContext.Current);
 
                 Assert.True(processed);
@@ -162,6 +144,13 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
             routeHandler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME).ConfigurationFiles[0] = "..\\..\\TestData\\RequireJsHttpHandlerBuilderShould\\init.json";
             var configurations = routeHandler.Configurations;
             return configurations;
+        }
+
+        private static RequireJsHttpHandlerBuilder createBuilder(IReadOnlyDictionary<string, RequireRendererConfiguration> configurations)
+        {
+            var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
+            var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
+            return builder;
         }
 
         private static RouteData buildRoute(string configName, string entryPoint)
