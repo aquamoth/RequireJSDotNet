@@ -9,7 +9,7 @@ using Xunit;
 
 namespace RequireJsNet.Tests
 {
-    public class RequireJsHttpHandlerShould
+    public class RequireJsHttpHandlerBuilderShould
     {
         //[Fact]
         //public void onlyProcessGETandHEADrequests()
@@ -18,7 +18,7 @@ namespace RequireJsNet.Tests
         //    using (new FakeHttpContext.FakeHttpContext())
         //    {
         //        var routeHandler = new RequireJsRouteHandler("unimportant-prefix");
-        //        //routeHandler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME).ConfigurationFiles[0] = "..\\..\\TestData\\RequireJsHttpHandlerShould\\init.json";
+        //        //routeHandler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME).ConfigurationFiles[0] = "..\\..\\TestData\\RequireJsHttpHandlerBuilderShould\\init.json";
 
 
         //        var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
@@ -49,7 +49,7 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
 </script>";
 
                 var routeHandler = new RequireJsRouteHandler("unimportant-prefix");
-                routeHandler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME).ConfigurationFiles[0] = "..\\..\\TestData\\RequireJsHttpHandlerShould\\init.json";
+                routeHandler.Get(RequireJsRouteHandler.DEFAULT_CONFIG_NAME).ConfigurationFiles[0] = "..\\..\\TestData\\RequireJsHttpHandlerBuilderShould\\init.json";
 
 
                 var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
