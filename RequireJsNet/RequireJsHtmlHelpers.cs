@@ -15,45 +15,52 @@ using System.Web.Mvc;
 
 namespace RequireJsNet
 {
-
     public static class RequireJsHtmlHelpers
     {
         /// <summary>
         /// Setup RequireJS to be used in layouts
         /// </summary>
-        /// <param name="html">
-        /// Html helper.
-        /// </param>
         /// <param name="config">
         /// Configuration object for various options.
         /// </param>
         /// <returns>
-        /// The <see cref="MvcHtmlString"/>.
+        /// Script code required to kickstart requirejs on the requested page.
         /// </returns>
-        public static MvcHtmlString RenderRequireJsSetup(
-            this HtmlHelper html,
-            RequireRendererConfiguration config)
+        public static MvcHtmlString RenderRequireJsSetup(this HtmlHelper html, RequireRendererConfiguration config)
         {
             if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
+                throw new ArgumentNullException(nameof(config));
 
             var entryPointPath = html.RequireJsEntryPoint(config.BaseUrl, config.EntryPointRoot);
-
             if (entryPointPath == null)
-            {
                 return new MvcHtmlString(string.Empty);
-            }
 
             if (config.ConfigurationFiles == null || !config.ConfigurationFiles.Any())
-            {
                 throw new Exception("No config files to load.");
-            }
+
+            return RenderRequireJsSetup_Inline(html, config, entryPointPath);
+        }
+
+        private static MvcHtmlString RenderRequireJsSetup_Inline(HtmlHelper html, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
+        {
+            string configScript = buildConfigScript(html, config, entryPointPath).Render();
+            string requireJsScript = buildRequireJsScript(config);
+            string requireEntrypointScript = buildRequireEntrypointScript(entryPointPath);
+
+            return new MvcHtmlString(string.Concat(
+                configScript + Environment.NewLine,
+                requireJsScript + Environment.NewLine,
+                requireEntrypointScript
+            ));
+        }
+
+        internal static JavaScriptBuilder buildConfigScript(HtmlHelper html, RequireRendererConfiguration config, MvcHtmlString entryPointPath)
+        {
+            var httpContext = html.ViewContext.HttpContext;
 
             var processedConfigs = config.ConfigurationFiles.Select(r =>
             {
-                var resultingPath = html.ViewContext.HttpContext.MapPath(r);
+                var resultingPath = httpContext.MapPath(r);
                 PathHelpers.VerifyFileExists(resultingPath);
                 return resultingPath;
             }).ToList();
@@ -64,27 +71,31 @@ namespace RequireJsNet
 
             var outputConfig = createOutputConfigFrom(resultingConfig, config, locale);
 
-            var options = createOptionsFrom(html.ViewContext.HttpContext, config, locale);
+            var options = createOptionsFrom(httpContext, config, locale);
 
             var configBuilder = new JavaScriptBuilder();
             configBuilder.AddStatement(JavaScriptHelpers.SerializeAsVariable(options, "requireConfig"));
             configBuilder.AddStatement(JavaScriptHelpers.SerializeAsVariable(outputConfig, "require"));
 
+            return configBuilder;
+        }
+
+        private static string buildRequireJsScript(RequireRendererConfiguration config)
+        {
             var requireRootBuilder = new JavaScriptBuilder();
             requireRootBuilder.AddAttributesToStatement("src", config.RequireJsUrl);
+            return requireRootBuilder.Render();
+        }
 
+        private static string buildRequireEntrypointScript(MvcHtmlString entryPointPath)
+        {
             var requireEntryPointBuilder = new JavaScriptBuilder();
             requireEntryPointBuilder.AddStatement(
                 JavaScriptHelpers.MethodCall(
                 "require",
                 (object)new[] { entryPointPath.ToString() }));
 
-            return new MvcHtmlString(
-                configBuilder.Render()
-                + Environment.NewLine
-                + requireRootBuilder.Render()
-                + Environment.NewLine
-                + requireEntryPointBuilder.Render());
+            return requireEntryPointBuilder.Render();
         }
 
         internal static JsonRequireOptions createOptionsFrom(System.Web.HttpContextBase httpContext, RequireRendererConfiguration config, string locale)
