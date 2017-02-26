@@ -31,14 +31,14 @@ namespace RequireJsNet.HttpModule
 
         public bool ProcessRequest(HttpContext context)
         {
-            if (IsMethodNotAllowed(context))
-                return true;
+            //if (IsMethodNotAllowed(context))
+            //    return true;
 
             var configName = requestContext.RouteData.GetRequiredString("configName");
             var config = this.configurations[configName];
 
-            if (!IsNotModified(context, config))
-                return true;
+            //if (!IsNotModified(context, config))
+            //    return true;
 
             var entrypoint = requestContext.RouteData.GetRequiredString("entrypoint");
             var entrypointPath = System.Web.Mvc.MvcHtmlString.Create(entrypoint);
@@ -54,38 +54,38 @@ namespace RequireJsNet.HttpModule
             return true;
         }
 
-        private bool IsMethodNotAllowed(HttpContext context)
-        {
-            if (new[] { "HEAD", "GET" }.Contains(context.Request.RequestType))
-                return false;
+        //private bool IsMethodNotAllowed(HttpContext context)
+        //{
+        //    if (new[] { "HEAD", "GET" }.Contains(context.Request.RequestType))
+        //        return false;
 
-            this.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-            return true;
-        }
+        //    this.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+        //    return true;
+        //}
 
-        private bool IsNotModified(HttpContext context, RequireRendererConfiguration config)
-        {
-            //var ifNoneMatch = context.Request.Headers["If-None-Match"];
-            //if (ifNoneMatch != null)
-            //{
-            //    if (ifNoneMatch != config.Hashcode)
-            //        return false;
-            //}
-            //else
-            //{
-            //    DateTime ifModifiedSince;
-            //    if (!DateTime.TryParse(context.Request.Headers["If-Modified-Since"], out ifModifiedSince))
-            //        return false;
+        //private bool IsNotModified(HttpContext context, RequireRendererConfiguration config)
+        //{
+        //    //var ifNoneMatch = context.Request.Headers["If-None-Match"];
+        //    //if (ifNoneMatch != null)
+        //    //{
+        //    //    if (ifNoneMatch != config.Hashcode)
+        //    //        return false;
+        //    //}
+        //    //else
+        //    //{
+        //    //    DateTime ifModifiedSince;
+        //    //    if (!DateTime.TryParse(context.Request.Headers["If-Modified-Since"], out ifModifiedSince))
+        //    //        return false;
 
-            //    if (config.LastModified > ifModifiedSince)
-            //        return false;
+        //    //    if (config.LastModified > ifModifiedSince)
+        //    //        return false;
 
-            //    addLastModifiedHeaderTo(context, config.LastModified);
-            //}
+        //    //    addLastModifiedHeaderTo(context, config.LastModified);
+        //    //}
 
-            //this.StatusCode = (int)HttpStatusCode.NotModified;
-            return true;
-        }
+        //    //this.StatusCode = (int)HttpStatusCode.NotModified;
+        //    return true;
+        //}
 
         #region Register Routes
 

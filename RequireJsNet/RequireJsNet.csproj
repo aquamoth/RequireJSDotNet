@@ -94,7 +94,7 @@
     <Compile Include="ExceptionThrowingLogger.cs" />
     <Compile Include="HttpModule\GenericHttpHandler.cs" />
     <Compile Include="HttpModule\IHttpHandlerBuilder.cs" />
-    <Compile Include="HttpModule\RequireJsHttpHandler.cs" />
+    <Compile Include="HttpModule\RequireJsHttpHandlerBuilder.cs" />
     <Compile Include="Helpers\HashStore.cs" />
     <Compile Include="Helpers\HtmlHelpers.cs" />
     <Compile Include="Helpers\JavaScriptHelpers.cs" />
