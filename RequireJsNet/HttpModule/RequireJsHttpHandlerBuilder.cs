@@ -31,6 +31,9 @@ namespace RequireJsNet.HttpModule
 
         public bool ProcessRequest(HttpContext context)
         {
+            this.ContentType = "text/javascript";
+            this.ContentEncoding = Encoding.UTF8;
+
             if (IsMethodNotAllowed(context))
                 return true;
 
@@ -43,10 +46,8 @@ namespace RequireJsNet.HttpModule
             var entrypoint = this.routeData.GetRequiredString(RequireJsRouteHandler.URL_ENTRYPOINT_NAME);
             var entrypointPath = System.Web.Mvc.MvcHtmlString.Create(entrypoint);
             var httpContext = new HttpContextWrapper(context);
-            
+
             this.Content = RequireJsHtmlHelpers.buildConfigScript(httpContext, config, entrypointPath).RenderContent();
-            this.ContentType = "text/javascript";
-            this.ContentEncoding = Encoding.UTF8;
             this.StatusCode = (int)HttpStatusCode.OK;
             this._headers.Add("Last-Modified", GmtString(config.LastModified));
             this._headers.Add("ETag", config.Hashcode);

@@ -79,6 +79,8 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
 
                 Assert.True(processed);
                 Assert.Equal((int)System.Net.HttpStatusCode.OK, builder.StatusCode);
+                Assert.Equal("text/javascript", builder.ContentType);
+                Assert.Equal(Encoding.UTF8, builder.ContentEncoding);
             }
         }
 
@@ -96,6 +98,8 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
 
                 Assert.True(processed);
                 Assert.Equal((int)System.Net.HttpStatusCode.NotModified, builder.StatusCode);
+                Assert.Equal("text/javascript", builder.ContentType);
+                Assert.Equal(Encoding.UTF8, builder.ContentEncoding);
                 //Assert.Equal(RequireJsHttpHandlerBuilder.GmtString(lastModified), builder.Headers["Last-Modified"]);
                 Assert.Null(builder.Content);
             }
@@ -116,6 +120,8 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
 
                 Assert.True(processed);
                 Assert.Equal((int)System.Net.HttpStatusCode.OK, builder.StatusCode);
+                Assert.Equal("text/javascript", builder.ContentType);
+                Assert.Equal(Encoding.UTF8, builder.ContentEncoding);
             }
         }
 
@@ -134,6 +140,8 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
 
                 Assert.True(processed);
                 Assert.Equal((int)System.Net.HttpStatusCode.NotModified, builder.StatusCode);
+                Assert.Equal("text/javascript", builder.ContentType);
+                Assert.Equal(Encoding.UTF8, builder.ContentEncoding);
                 Assert.Null(builder.Content);
             }
         }
