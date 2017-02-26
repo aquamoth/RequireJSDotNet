@@ -48,8 +48,8 @@ namespace RequireJsNet.HttpModule
             this.ContentType = "text/javascript";
             this.ContentEncoding = Encoding.UTF8;
             this.StatusCode = (int)HttpStatusCode.OK;
-            //this._headers.Add("Last-Modified", config.LastModified.ToUniversalTime().ToString("R"));
-            //this._headers.Add("ETag", config.Hashcode);
+            this._headers.Add("Last-Modified", config.LastModified.ToUniversalTime().ToString("R"));
+            this._headers.Add("ETag", config.Hashcode);
 
             return true;
         }

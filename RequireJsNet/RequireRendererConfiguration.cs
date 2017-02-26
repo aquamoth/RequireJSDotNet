@@ -11,6 +11,8 @@ namespace RequireJsNet
 {
     public class RequireRendererConfiguration
     {
+        public DateTime LastModified;
+
         private string baseUrl = string.Empty;
 
         private string requireJsUrl = string.Empty;
@@ -30,6 +32,12 @@ namespace RequireJsNet
             LocaleSelector = httpContext => System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Split('-')[0];
             ProcessConfig = config => { };
             ProcessOptions = options => { };
+            LastModified = truncateToWholeSeconds(DateTime.Now);
+        }
+
+        private static DateTime truncateToWholeSeconds(DateTime dt)
+        {
+            return new DateTime(dt.Ticks - (dt.Ticks % TimeSpan.TicksPerSecond), dt.Kind);
         }
 
         /// <summary>
@@ -157,5 +165,13 @@ namespace RequireJsNet
         public Action<JsonRequireOutput> ProcessConfig { get; set; }
 
         public Action<JsonRequireOptions> ProcessOptions { get; set; }
+
+        public string Hashcode
+        {
+            get
+            {
+                return LastModified.Ticks.ToString();//TODO: Replace with cached cryptographic hashcode of the actual config
+            }
+        }
     }
 }

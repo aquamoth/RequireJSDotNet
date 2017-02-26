@@ -43,11 +43,17 @@ namespace RequireJsNet.Tests
         {
             using (new FakeHttpContext.FakeHttpContext())
             {
+                var configurations = testConfigurations();
+
+                var expectedHeaders = new Dictionary<string, string>() {
+                    { "Last-Modified", configurations.Single().Value.LastModified.ToUniversalTime().ToString("R") },
+                    { "ETag", configurations.Single().Value.LastModified.Ticks.ToString() }
+                };
+
                 var expectedContent = @"<script>
 requireConfig = {""locale"":""sv"",""pageOptions"":{},""websiteOptions"":{}};
 require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSeconds"":7,""paths"":{},""packages"":[],""shim"":{},""map"":{}};
 </script>";
-                var configurations = testConfigurations();
                 var routeData = buildRoute(RequireJsRouteHandler.DEFAULT_CONFIG_NAME, "myEntrypoint");
                 var builder = new RequireJsHttpHandlerBuilder(configurations, routeData);
 
@@ -57,6 +63,7 @@ require = {""baseUrl"":""/Scripts/"",""locale"":""sv"",""urlArgs"":null,""waitSe
                 Assert.Equal("text/javascript", builder.ContentType);
                 Assert.Equal(Encoding.UTF8, builder.ContentEncoding);
                 Assert.Equal((int)System.Net.HttpStatusCode.OK, builder.StatusCode);
+                Assert.Equal(expectedHeaders, builder.Headers);
                 Assert.Equal(expectedContent, builder.Content);
             }
         }
