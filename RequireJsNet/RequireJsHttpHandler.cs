@@ -12,13 +12,13 @@ namespace RequireJsNet
 {
     public class RequireJsHttpHandler : IHttpHandler
     {
-        //readonly RequestContext requestContext;
-        //readonly IReadOnlyDictionary<string, RequireRendererConfiguration> configurations;
+        readonly RequestContext requestContext;
+        readonly IReadOnlyDictionary<string, RequireRendererConfiguration> configurations;
 
         internal RequireJsHttpHandler(RequestContext requestContext, IReadOnlyDictionary<string, RequireRendererConfiguration> configurations)
         {
-            //this.requestContext = requestContext;
-            //this.configurations = configurations;
+            this.requestContext = requestContext;
+            this.configurations = configurations;
         }
 
         bool IHttpHandler.IsReusable { get { return true; } }
@@ -28,13 +28,13 @@ namespace RequireJsNet
             //if (!assertIsValidRequestType(context))
             //    return;
 
-            //var configName = requestContext.RouteData.GetRequiredString("configName");
-            //var config = configurations[configName];
+            var configName = requestContext.RouteData.GetRequiredString("configName");
+            var config = configurations[configName];
 
             //if (!assertRequiresNewScript(context, config))
             //    return;
 
-            //respondWithScript(context, config);
+            respondWithScript(context, config);
         }
 
         //private bool assertIsValidRequestType(HttpContext context)
@@ -70,36 +70,36 @@ namespace RequireJsNet
         //    return false;
         //}
 
-        //private void respondWithScript(HttpContext context, RequireRendererConfiguration config)
-        //{
-        //    var entrypoint = requestContext.RouteData.GetRequiredString("entrypoint");
-        //    var entrypointPath = System.Web.Mvc.MvcHtmlString.Create(entrypoint);
+        private void respondWithScript(HttpContext context, RequireRendererConfiguration config)
+        {
+            var entrypoint = requestContext.RouteData.GetRequiredString("entrypoint");
+            var entrypointPath = System.Web.Mvc.MvcHtmlString.Create(entrypoint);
 
-        //    var httpContext = new HttpContextWrapper(context);
-        //    var scriptContent = RequireJsHtmlHelpers.buildConfigScript(httpContext, config, entrypointPath).Render();
+            var httpContext = new HttpContextWrapper(context);
+            var scriptContent = RequireJsHtmlHelpers.buildConfigScript(httpContext, config, entrypointPath).Render();
 
-        //    context.Response.ContentType = "text/javascript";
+            context.Response.ContentType = "text/javascript";
         //    context.Response.ContentEncoding = Encoding.UTF8;
         //    addLastModifiedHeaderTo(context, config.LastModified);
         //    context.Response.AddHeader("ETag", config.Hashcode);
 
         //    if (context.Request.RequestType != "HEAD")
-        //        context.Response.Write(scriptContent);
+                context.Response.Write(scriptContent);
 
-        //    endResponseWith(context, HttpStatusCode.OK);
-        //}
+            endResponseWith(context, HttpStatusCode.OK);
+        }
 
         //private static void addLastModifiedHeaderTo(HttpContext context, DateTime lastModified)
         //{
         //    context.Response.AddHeader("Last-Modified", lastModified.ToUniversalTime().ToString("R"));
         //}
 
-        //private static void endResponseWith(HttpContext context, HttpStatusCode statusCode)
-        //{
-        //    context.Response.StatusCode = (int)statusCode;
-        //    context.Response.Flush();
-        //    context.ApplicationInstance.CompleteRequest();
-        //}
+        private static void endResponseWith(HttpContext context, HttpStatusCode statusCode)
+        {
+            //context.Response.StatusCode = (int)statusCode;
+            //context.Response.Flush();
+            //context.ApplicationInstance.CompleteRequest();
+        }
 
         #region Register Routes
 

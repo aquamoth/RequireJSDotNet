@@ -10,7 +10,7 @@ namespace RequireJsNet
 {
     public class RequireJsRouteHandler : IRouteHandler
     {
-        public const string DEFAULT_CONFIG_NAME = "";
+        public const string DEFAULT_CONFIG_NAME = "default";
 
         readonly Dictionary<string, RequireRendererConfiguration> _configurations;
 

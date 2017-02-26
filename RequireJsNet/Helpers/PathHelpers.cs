@@ -28,7 +28,7 @@ namespace RequireJsNet.Helpers
         {
             if (!File.Exists(path))
             {
-                throw new FileNotFoundException("Could not find config file", path);
+                throw new FileNotFoundException($"Could not find config file at '{path}'", path);
             }
         }
 
